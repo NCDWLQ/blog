@@ -17,8 +17,8 @@ const translation: Translation = {
         subTitle: {
             home: "关于技术，关于生活，以及那些还没想明白的事。",
             archive: "共 {count} 篇文章",
-            about: "一个极简的Blog模板",
-            friends: "有趣的灵魂",
+            about: "施工中",
+            friends: "施工中",
         }
     },
     toc: "目录",

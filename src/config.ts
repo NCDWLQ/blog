@@ -46,18 +46,4 @@ export const licenseConfig: LicenseConfig = {
 	url: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
 };
 
-export const friendLinkConfig: FriendLink[] = [
-    {
-        name: 'Motues',
-        avatar: 'https://www.motues.top/avatar.jpg',
-        url: 'https://www.motues.top',
-        description: 'Like River!'
-    },
-    {
-        name: 'Astro',
-        avatar: 'https://avatars.githubusercontent.com/u/44914786',
-        url: 'https://astro.build',
-        description: 'Build fast websites, faster.'
-    }
-    // Add more friend links here
-]
+export const friendLinkConfig: FriendLink[] = []
