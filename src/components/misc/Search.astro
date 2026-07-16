@@ -34,7 +34,14 @@ const fakeResult: SearchResult[] = [
   }
 ]
 ---
-<div id="search-modal" class="fixed inset-0 z-[100] opacity-0 pointer-events-none">
+<div
+  id="search-modal"
+  class="fixed inset-0 z-[100] opacity-0 pointer-events-none"
+  role="dialog"
+  aria-modal="true"
+  aria-label={t("search.placeholder")}
+  hidden
+>
   <div class="absolute inset-0 modal-backdrop opacity-0" aria-hidden="true"></div>
 
   <div class="fixed inset-0 flex items-start justify-center p-4 pt-[25vh]">
@@ -46,9 +53,11 @@ const fakeResult: SearchResult[] = [
         <input 
           type="text" 
           id="search-input"
+          name="search"
           placeholder={t("search.placeholder")+"..."}
+          aria-label={t("search.placeholder")}
+          autocomplete="off"
           class="w-full bg-transparent border-0 focus:ring-0 focus:outline-none  text-[var(--text-color)]"
-          autofocus
         />
         <button id="close-search" class="ml-2 p-2 text-[var(--text-color-70)] rounded-lg hover:bg-[var(--button-hover-color)] active:bg-[var(--button-hover-color)]" aria-label="Close Search">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -74,9 +83,15 @@ function initSearchModal() {
   const modalBackdrop = searchModal?.firstElementChild;
   const modalContent = searchModal?.querySelector('.search-modal-content');
 
-  if (!searchButton || !searchModal) return; // 防止重复绑定
+  if (!searchButton || !searchModal) return;
+  if (searchButton.dataset.searchModalBound === 'true') return;
+  searchButton.dataset.searchModalBound = 'true';
+
+  const animationDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300;
 
   const openModal = () => {
+    searchModal.hidden = false;
+    searchButton.setAttribute('aria-expanded', 'true');
     searchModal.classList.remove('opacity-0', 'pointer-events-none');
     searchModal.offsetHeight;
     requestAnimationFrame(() => {
@@ -84,8 +99,8 @@ function initSearchModal() {
       modalBackdrop?.classList.add('show');
       modalContent?.classList.remove('scale-80', 'opacity-0');
       modalContent?.classList.add('scale-100');
+      searchInput?.focus();
     });
-    setTimeout(() => searchInput?.focus(), 300);
   };
 
   const closeModal = () => {
@@ -97,17 +112,41 @@ function initSearchModal() {
     });
     setTimeout(() => {
       searchModal.classList.add('opacity-0', 'pointer-events-none');
-    }, 300);
+      searchModal.hidden = true;
+      searchButton.setAttribute('aria-expanded', 'false');
+      searchButton.focus();
+    }, animationDuration);
   };
 
   searchButton.addEventListener('click', openModal);
   closeSearch?.addEventListener('click', closeModal);
   searchModal.addEventListener('click', (e) => {
-    if (!modalContent?.contains(e.target)) closeModal();
+    if (e.target instanceof Node && !modalContent?.contains(e.target)) closeModal();
   });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !searchModal.classList.contains('opacity-0')) {
+
+  searchModal.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
       closeModal();
+      return;
+    }
+
+    if (e.key !== 'Tab') return;
+
+    const focusableElements = Array.from(searchModal.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    ));
+    if (focusableElements.length === 0) return;
+
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey && document.activeElement === firstFocusable) {
+      e.preventDefault();
+      if (lastFocusable instanceof HTMLElement) lastFocusable.focus();
+    } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+      e.preventDefault();
+      if (firstFocusable instanceof HTMLElement) firstFocusable.focus();
     }
   });
 }
@@ -152,6 +191,14 @@ document.addEventListener('astro:after-swap', initSearchModal);
   
   .modal-backdrop:not(.show) {
     animation: backdropFadeOut 0.3s ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modal-backdrop,
+    .search-modal-content {
+      animation: none !important;
+      transition: none !important;
+    }
   }
   
   #search-input::-webkit-input-placeholder {
