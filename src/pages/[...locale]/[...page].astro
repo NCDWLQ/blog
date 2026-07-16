@@ -60,7 +60,9 @@ export const getStaticPaths = (async ({ paginate }) => {
 
 
 const indexPage = getRelativeLocaleUrl(locale, '/');
-const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
+const pageTitle = siteConfig.subTitle
+  ? `${siteConfig.title} - ${siteConfig.subTitle}`
+  : siteConfig.title;
 
 ---
 

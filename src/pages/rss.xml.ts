@@ -5,10 +5,14 @@ import type { APIContext } from "astro";
 
 export async function GET(context: APIContext) {
     const blog = await getBlogEntrySort();
+    const feedTitle = siteConfig.subTitle
+        ? `${siteConfig.title} - ${siteConfig.subTitle}`
+        : siteConfig.title;
+
     return rss({
-        title: `${siteConfig.title} - ${siteConfig.subTitle}`,
+        title: feedTitle,
         description: profileConfig.description,
-        site: context.site ?? "https://momo.motues.top",
+        site: context.site ?? "https://ncdwlq.space",
         items: blog.slice(0, 20).map((post) => ({
             title: post.data.title,
             pubDate: post.data.pubDate,
